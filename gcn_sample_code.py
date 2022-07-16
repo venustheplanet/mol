@@ -20,7 +20,7 @@ import matplotlib.pyplot as plt
 import tensorflow as tf
 import pandas as pd
 
-!pip install --pre deepchem
+# !pip install --pre deepchem
 import deepchem as dc
 from deepchem.data.data_loader import CSVLoader
 from deepchem.feat.graph_features import ConvMolFeaturizer
@@ -38,7 +38,7 @@ tf.random.set_seed(0)
 # tf.set_random_seed(0)
 
 # For testing only
-os.chdir('/home/molpharm/sakai/scripts/GCN_sample_code')
+# os.chdir('/home/molpharm/sakai/scripts/GCN_sample_code')
 my_directory = Path(os.getcwd())
 
 
