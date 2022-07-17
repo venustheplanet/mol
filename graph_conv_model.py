@@ -29,36 +29,41 @@ import os
 from pathlib import Path
 import csv
 import math
+import tensorflow as tf
 
-content_path = Path('/content/drive/MyDrive/chem_data')
-from google.colab import drive
-drive.mount('/content/drive')
+# content_path = Path('/content/drive/MyDrive/chem_data')
+my_directory = Path(os.getcwd())
+print(my_directory)
+content_path = my_directory/'data'
+# content_path = Path('/vol/bitbucket/vwc21/mol/data')
+gcn_path = my_directory/'gcn'
+# gcn_path = Path('vol/bitbucket/vwc21/mol/gcn')
 
 # Create directories
 # def create_dir():
 """ Create directories featurized, valid, train, test.."""
 # csv feat dir
-csv_feat_dir = content_path/'csv_feat'
+csv_feat_dir = gcn_path/'csv_feat'
 if not csv_feat_dir.is_dir():
   csv_feat_dir.mkdir()
 
 # train dir
-train_dir = content_path/'train_dir'
+train_dir = gcn_path/'train_dir'
 if not train_dir.is_dir():
   train_dir.mkdir()
 
 # test dir
-test_dir = content_path/'test_dir'
+test_dir = gcn_path/'test_dir'
 if not test_dir.is_dir():
   test_dir.mkdir()
 
 # val dir
-val_dir = content_path/'val_dir'
+val_dir = gcn_path/'val_dir'
 if not val_dir.is_dir():
   val_dir.mkdir()
 
 # model dir
-model_dir = content_path/'model_dir'
+model_dir = gcn_path/'model_dir'
 if not model_dir.is_dir():
   model_dir.mkdir()
 
@@ -160,24 +165,22 @@ rms_score = dc.metrics.Metric(
 """### Trial GCNModel"""
 
 # trial model 
-!pip install dgllife
-!pip install dgl
 
-from deepchem.models import GCNModel
 
-model = GCNModel(mode='regression', n_tasks=1, batch_size=16, learning_rate=0.01)
-loss = model.fit(train, nb_epoch=5)
+# from deepchem.models import GCNModel
 
-print(loss)
+# model = GCNModel(mode='regression', n_tasks=1, batch_size=16, learning_rate=0.01)
+# loss = model.fit(train, nb_epoch=5)
 
-model_mae = model.evaluate(val, [mean_absolute_error], per_task_metrics=False)
+# print(loss)
 
-print(model_mae)
+# model_mae = model.evaluate(val, [mean_absolute_error], per_task_metrics=False)
+
+# print(model_mae)
 
 """### Hyperparameter"""
 
 # Hyperparameters tuning
-!pip install pyGPGO
 import pyGPGO
 from pyGPGO.covfunc import matern32
 from pyGPGO.acquisition import Acquisition
@@ -194,7 +197,8 @@ params_dict = {
 }
 
 df_param = pd.DataFrame.from_dict(params_dict,orient='index', )
-display(df_param)
+print(df_param)
+# display(df_param)
 
 def hyper_model(dense_layer_size, graph_conv_layer_size, batch_size, dropout, nb_epoch, **params):
      
@@ -216,7 +220,7 @@ def hyper_model(dense_layer_size, graph_conv_layer_size, batch_size, dropout, nb
             mode='regression',
             graph_conv_layers=[graph_conv_layer_size]*graph_conv_depth,
             dense_layer_size=dense_layer_size,
-            # configproto=config,
+            configproto=config,
             **params
             )
     model.fit(train_gcn)
@@ -237,7 +241,7 @@ def hyper_model(dense_layer_size, graph_conv_layer_size, batch_size, dropout, nb
     
     return neg_valid_scores_mae
 
-# config = tf.compat.v1.ConfigProto()
+config = tf.compat.v1.ConfigProto()
 # config = tf.ConfigProto()
 # config.gpu_options.allow_growth = True
 
@@ -259,6 +263,23 @@ max_iter = 10
 init_evals = 1
 gpgo.run(max_iter=max_iter, init_evals=init_evals)
 
+# print
+# print(neg_mae, mae, r2, rmse)
+# Prameters with a maximum 2R2_MAE (ToR2MAE) value
+
+df = pd.DataFrame(r2, columns = ['pearson_r2_score'])
+df['mae'] = pd.DataFrame(mae)
+df['neg_mae'] = pd.DataFrame(neg_mae)
+df['rmse'] = pd.DataFrame(rmse)
+
+ToR2MAE = df['pearson_r2_score'] + df['pearson_r2_score'] + df['neg_mae'] 
+
+
+np.max(ToR2MAE)
+np.argmax(ToR2MAE)
+print('maximum 2R2_MAE at {}'.format(np.argmax(ToR2MAE) - init_evals + 1))
+print('\n')
+print(df.loc[np.argmax(ToR2MAE)])
 # hyperparameter tuning
 """
 from deepchem.models import GCNModel

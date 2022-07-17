@@ -12,4 +12,4 @@ uptime
 cd /vol/bitbucket/vwc21/mol
 
 
-python3 gcn_sample_code.py
+python3 graph_conv_model.py

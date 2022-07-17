@@ -1,0 +1,26 @@
+Mon Jul 18 00:05:42 2022       
++-----------------------------------------------------------------------------+
+| NVIDIA-SMI 470.103.01   Driver Version: 470.103.01   CUDA Version: 11.4     |
+|-------------------------------+----------------------+----------------------+
+| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|                               |                      |               MIG M. |
+|===============================+======================+======================|
+|   0  Tesla T4            On   | 00000000:00:07.0 Off |                    0 |
+| N/A   31C    P8     9W /  70W |      0MiB / 15109MiB |      0%      Default |
+|                               |                      |                  N/A |
++-------------------------------+----------------------+----------------------+
+                                                                               
++-----------------------------------------------------------------------------+
+| Processes:                                                                  |
+|  GPU   GI   CI        PID   Type   Process name                  GPU Memory |
+|        ID   ID                                                   Usage      |
+|=============================================================================|
+|  No running processes found                                                 |
++-----------------------------------------------------------------------------+
+ 00:05:43 up 71 days,  2:45,  2 users,  load average: 1.14, 1.36, 1.38
+/vol/bitbucket/vwc21/mol
+Traceback (most recent call last):
+  File "graph_conv_model.py", line 169, in <module>
+    from deepchem.models import GCNModel
+ImportError: cannot import name 'GCNModel' from 'deepchem.models' (/vol/bitbucket/vwc21/chem_env/lib/python3.8/site-packages/deepchem/models/__init__.py)
