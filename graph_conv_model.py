@@ -16,6 +16,7 @@ import deepchem as dc
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import argparse
 
 # RDKit
 import rdkit
@@ -87,7 +88,7 @@ def sdf_to_csv(filename):
   data_df = pd.DataFrame(data_dict)
   data_df.to_csv(f"{content_path}/{filename}.csv")
 
-sdf_to_csv('tid15')
+# sdf_to_csv('tid11')
 
 # Featurize into dataset
 """
@@ -125,28 +126,32 @@ def csv_to_feat(filename, feat="mol"):
   # print(pki)
   return dataset
 
-dataset = csv_to_feat('tid15')
+# dataset = csv_to_feat('tid11')
 
-dataset_gcn = csv_to_feat('tid15', 'gcn')
+# dataset_gcn = csv_to_feat('tid11', 'gcn')
 
 # split datasets
 
 from deepchem.splits.splitters import RandomSplitter
 
-splitter = RandomSplitter()
-train, val, test = splitter.train_valid_test_split(
-    dataset=dataset,
-    log_every_n=100
-)
+def split_dataset(dataset):
+  """ Splits dataset into train, val, test sets of 80%, 10%, 10%
+  """
+  splitter = RandomSplitter()
+  train, val, test = splitter.train_valid_test_split(
+      dataset=dataset,
+      log_every_n=100
+  )
+  return train, val, test
 
 # dataset gcn
 
-splitter = RandomSplitter()
+# splitter = RandomSplitter()
 
-train_gcn, val_gcn, test_gcn = splitter.train_valid_test_split(
-    dataset=dataset_gcn,
-    log_every_n=100
-)
+# train_gcn, val_gcn, test_gcn = splitter.train_valid_test_split(
+#     dataset=dataset_gcn,
+#     log_every_n=100
+# )
 
 # Metrics
 
@@ -207,6 +212,10 @@ def hyper_model(dense_layer_size, graph_conv_layer_size, batch_size, dropout, nb
     global r2
     global rmse
     global config
+    global model_batch_size
+    global model_dropout
+    global model_graph_conv_layers
+    global model_dense_layer_size
     
     dense_layer_size = int(round(dense_layer_size))
     graph_conv_depth = 2 # two graph convolutional layers
@@ -223,16 +232,22 @@ def hyper_model(dense_layer_size, graph_conv_layer_size, batch_size, dropout, nb
             configproto=config,
             **params
             )
-    model.fit(train_gcn)
+    model.fit(train)
 
     # MAE
-    valid_scores_mae = model.evaluate(val_gcn, [mean_absolute_error], per_task_metrics=False)
+    valid_scores_mae = model.evaluate(val, [mean_absolute_error], per_task_metrics=False)
     # R2
-    valid_scores_r2 = model.evaluate(val_gcn, [pearson_r2_score], per_task_metrics=False)
+    valid_scores_r2 = model.evaluate(val, [pearson_r2_score], per_task_metrics=False)
     # RMSE
-    valid_scores_rmse = model.evaluate(val_gcn, [rms_score], per_task_metrics=False)
+    valid_scores_rmse = model.evaluate(val, [rms_score], per_task_metrics=False)
     # -MAE
     neg_valid_scores_mae = -valid_scores_mae['mean-mean_absolute_error']
+
+    # added these to check parameters
+    model_batch_size.append(batch_size)
+    model_dropout.append(dropout)
+    model_graph_conv_layers.append([graph_conv_layer_size]*graph_conv_depth)
+    model_dense_layer_size.append(dense_layer_size)
 
     neg_mae.append(neg_valid_scores_mae)
     mae.append(valid_scores_mae['mean-mean_absolute_error'])
@@ -241,45 +256,58 @@ def hyper_model(dense_layer_size, graph_conv_layer_size, batch_size, dropout, nb
     
     return neg_valid_scores_mae
 
-config = tf.compat.v1.ConfigProto()
-# config = tf.ConfigProto()
-# config.gpu_options.allow_growth = True
+# config = tf.compat.v1.ConfigProto()
+# # config = tf.ConfigProto()
+# # config.gpu_options.allow_growth = True
 
-# Run the model 
+# # Run the model 
 
-neg_mae = []
-mae = []
-r2  = []
-rmse = []
-cov = matern32()
-gp  = GaussianProcess(cov)
-acq = Acquisition(mode='ExpectedImprovement')
-tasks = ['pki']
+# neg_mae = []
+# mae = []
+# r2  = []
+# rmse = []
+# cov = matern32()
+# gp  = GaussianProcess(cov)
+# acq = Acquisition(mode='ExpectedImprovement')
+# tasks = ['pki']
 
-gpgo = GPGO(gp, acq, hyper_model, params_dict)
-
-# Adjust the number of iterations, e.g., max_iter=100 and init_eval=10.
-max_iter = 10
-init_evals = 1
-gpgo.run(max_iter=max_iter, init_evals=init_evals)
-
-# print
-# print(neg_mae, mae, r2, rmse)
-# Prameters with a maximum 2R2_MAE (ToR2MAE) value
-
-df = pd.DataFrame(r2, columns = ['pearson_r2_score'])
-df['mae'] = pd.DataFrame(mae)
-df['neg_mae'] = pd.DataFrame(neg_mae)
-df['rmse'] = pd.DataFrame(rmse)
-
-ToR2MAE = df['pearson_r2_score'] + df['pearson_r2_score'] + df['neg_mae'] 
+# #added this 
+# model_batch_size = []
+# model_dense_layer_size = []
+# model_graph_conv_layers = []
+# model_dropout = []
 
 
-np.max(ToR2MAE)
-np.argmax(ToR2MAE)
-print('maximum 2R2_MAE at {}'.format(np.argmax(ToR2MAE) - init_evals + 1))
-print('\n')
-print(df.loc[np.argmax(ToR2MAE)])
+# gpgo = GPGO(gp, acq, hyper_model, params_dict)
+
+# # Adjust the number of iterations, e.g., max_iter=100 and init_eval=10.
+# max_iter = 10
+# init_evals = 1
+# gpgo.run(max_iter=max_iter, init_evals=init_evals)
+
+# # print
+# # print(neg_mae, mae, r2, rmse)
+# # Prameters with a maximum 2R2_MAE (ToR2MAE) value
+
+# df = pd.DataFrame(r2, columns = ['pearson_r2_score'])
+# df['mae'] = pd.DataFrame(mae)
+# df['neg_mae'] = pd.DataFrame(neg_mae)
+# df['rmse'] = pd.DataFrame(rmse)
+
+# # added
+# # df['model_batch_size'] = pd.DataFrame(model_batch_size)
+# # df['model_dense_layer_size'] = pd.DataFrame(model_dense_layer_size)
+# # df['model_graph_conv_layers'] = pd.DataFrame(model_graph_conv_layers)
+# # df['model_dropout'] = pd.DataFrame(model_dropout)
+
+# ToR2MAE = df['pearson_r2_score'] + df['pearson_r2_score'] + df['neg_mae'] 
+
+
+# np.max(ToR2MAE)
+# np.argmax(ToR2MAE)
+# print('maximum 2R2_MAE at {}'.format(np.argmax(ToR2MAE) - init_evals + 1))
+# print('\n')
+# print(df.loc[np.argmax(ToR2MAE)])
 # hyperparameter tuning
 """
 from deepchem.models import GCNModel
@@ -325,3 +353,66 @@ def hyper_model(dense_layer_size, graph_conv_layer_size, batch_size, dropout, nb
     
     return neg_valid_scores_mae
 """
+
+if __name__ == "__main__":
+  parser = argparse.ArgumentParser(description="Evaluate datasets on simple GCN")
+  parser.add_argument('-d', '--dataset', type=str, default='tid11', help="name of the dataset, should be in sdf format, e.g. tid11")
+  args = parser.parse_args()
+
+
+  sdf_to_csv(args.dataset)
+  dataset_gcn = csv_to_feat(args.dataset, 'gcn')
+  train, test, val = split_dataset(dataset_gcn)
+
+  config = tf.compat.v1.ConfigProto()
+  # config = tf.ConfigProto()
+  # config.gpu_options.allow_growth = True
+
+  # Run the model 
+
+  neg_mae = []
+  mae = []
+  r2  = []
+  rmse = []
+  cov = matern32()
+  gp  = GaussianProcess(cov)
+  acq = Acquisition(mode='ExpectedImprovement')
+  tasks = ['pki']
+
+  #added this 
+  model_batch_size = []
+  model_dense_layer_size = []
+  model_graph_conv_layers = []
+  model_dropout = []
+
+
+  gpgo = GPGO(gp, acq, hyper_model, params_dict)
+
+  # Adjust the number of iterations, e.g., max_iter=100 and init_eval=10.
+  max_iter = 10
+  init_evals = 1
+  gpgo.run(max_iter=max_iter, init_evals=init_evals)
+
+  # print
+  # print(neg_mae, mae, r2, rmse)
+  # Prameters with a maximum 2R2_MAE (ToR2MAE) value
+
+  df = pd.DataFrame(r2, columns = ['pearson_r2_score'])
+  df['mae'] = pd.DataFrame(mae)
+  df['neg_mae'] = pd.DataFrame(neg_mae)
+  df['rmse'] = pd.DataFrame(rmse)
+
+  # added
+  # df['model_batch_size'] = pd.DataFrame(model_batch_size)
+  # df['model_dense_layer_size'] = pd.DataFrame(model_dense_layer_size)
+  # df['model_graph_conv_layers'] = pd.DataFrame(model_graph_conv_layers)
+  # df['model_dropout'] = pd.DataFrame(model_dropout)
+
+  ToR2MAE = df['pearson_r2_score'] + df['pearson_r2_score'] + df['neg_mae'] 
+
+
+  np.max(ToR2MAE)
+  np.argmax(ToR2MAE)
+  print('maximum 2R2_MAE at {}'.format(np.argmax(ToR2MAE) - init_evals + 1))
+  print('\n')
+  print(df.loc[np.argmax(ToR2MAE)])

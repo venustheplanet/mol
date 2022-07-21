@@ -1,0 +1,33 @@
+Thu Jul 21 21:46:40 2022       
++-----------------------------------------------------------------------------+
+| NVIDIA-SMI 470.129.06   Driver Version: 470.129.06   CUDA Version: 11.4     |
+|-------------------------------+----------------------+----------------------+
+| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|                               |                      |               MIG M. |
+|===============================+======================+======================|
+|   0  Tesla T4            Off  | 00000000:00:08.0 Off |                    0 |
+| N/A   39C    P8     9W /  70W |      0MiB / 15109MiB |      0%      Default |
+|                               |                      |                  N/A |
++-------------------------------+----------------------+----------------------+
+                                                                               
++-----------------------------------------------------------------------------+
+| Processes:                                                                  |
+|  GPU   GI   CI        PID   Type   Process name                  GPU Memory |
+|        ID   ID                                                   Usage      |
+|=============================================================================|
+|  No running processes found                                                 |
++-----------------------------------------------------------------------------+
+ 21:46:40 up 2 days, 12:25,  2 users,  load average: 2.40, 3.12, 3.28
+/vol/bitbucket/vwc21/mol
+                          0                1
+dense_layer_size        int       [16, 2048]
+graph_conv_layer_size   int       [32, 2048]
+dropout                cont       [0.0, 0.5]
+batch_size              int        [10, 100]
+learning_rate          cont  [0.0001, 0.002]
+nb_epoch                int        [20, 200]
+Traceback (most recent call last):
+  File "graph_conv_model.py", line 359, in <module>
+    parser.add_agument('-d', '--dataset', type=str, default='tid11', help="name of the dataset, should be in sdf format, e.g. tid11")
+AttributeError: 'ArgumentParser' object has no attribute 'add_agument'
