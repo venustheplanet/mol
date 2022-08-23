@@ -109,7 +109,7 @@ def metrics_dc():
 def evaluate_dataset(dataset_id):
     """ Initial evaluation of number of compounds, min.pKi, max.pKi, mean.pKi, size of molecules"""
     print("Evaluate dataset") 
-    data = pd.read_csv(f"{content_path}/{dataset_id}.csv")
+    data = pd.read_csv(f"{content_path}/tid{dataset_id}.csv")
     smiles = data['smiles'].tolist()
     pki = data['pki'].tolist()
     # number of compounds
@@ -117,7 +117,46 @@ def evaluate_dataset(dataset_id):
         num_compounds = len(smiles)
     else:
         num_compounds = 'error'
+    # Molecular weight
+    mol_weights = []
+    for i in smiles:
+      mol = Chem.MolFromSmiles(i)
+      mol_weights.append(Chem.Descriptors.ExactMolWt(mol))
+    min_mol_weight = min(mol_weights)
+    max_mol_weight = max(mol_weights)
+    avg_mol_weight = sum(mol_weights) / len(mol_weights)
+    
+    print(num_compounds)
+    print(f"Avg mole weight is {avg_mol_weight}")
+    print(f"min mol wt is {min_mol_weight}")
+    print(f"max mol wt is {max_mole_weight}")
+
+    # Min, max, avg pKi
+    min_pki = min(pki)
+    max_pki = max(pki)
+    avg_pki = sum(pki) / len(pki)
+
+    print(f"Avg pki is {avg_pki}")
+    print(f"min pki is {min_pki}")
+    print(f"max pki is {max_pki}")
+
+    dataset_summary = {}
+    dataset_summary['id'] = 'tid'+ dataset_id
+    dataset_summary['avg_mol_wt'] = avg_mol_weight
+    dataset_summary['min_mol_wt'] = min_mol_weight
+    dataset_summary['max_mol_wt'] = max_mol_weight
+    dataset_summary['avg_pki'] = avg_pki
+    dataset_summary['min_pki'] = min_pki
+    dataset_summary['max_pki'] = max_pki
+
+    print(dataset_summary)
+    return dataset_summary
+
+
     
 
 
 dataset_ids = ['11', '15', '51', '72', '87', '100', '107', '108', '114', '121', '129', '130', '136', '137', '138', '155', '165', '176', '194', '252', '259', '278', '280', '10142', '10193', '10280', '10627', '11290', '12209', '12209', '12952', '19905']
+
+if __name__ == "__main__":
+  evaluate_dataset('11')
