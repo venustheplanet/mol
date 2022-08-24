@@ -1,0 +1,25 @@
+Tue Aug 23 22:33:30 2022       
++-----------------------------------------------------------------------------+
+| NVIDIA-SMI 470.129.06   Driver Version: 470.129.06   CUDA Version: 11.4     |
+|-------------------------------+----------------------+----------------------+
+| GPU  Name        Persistence-M| Bus-Id        Disp.A | Volatile Uncorr. ECC |
+| Fan  Temp  Perf  Pwr:Usage/Cap|         Memory-Usage | GPU-Util  Compute M. |
+|                               |                      |               MIG M. |
+|===============================+======================+======================|
+|   0  NVIDIA TITAN Xp     On   | 00000000:B3:00.0 Off |                  N/A |
+| 23%   26C    P8     8W / 250W |      1MiB / 12196MiB |      0%      Default |
+|                               |                      |                  N/A |
++-------------------------------+----------------------+----------------------+
+                                                                               
++-----------------------------------------------------------------------------+
+| Processes:                                                                  |
+|  GPU   GI   CI        PID   Type   Process name                  GPU Memory |
+|        ID   ID                                                   Usage      |
+|=============================================================================|
+|  No running processes found                                                 |
++-----------------------------------------------------------------------------+
+ 22:33:30 up 35 days, 13:11,  2 users,  load average: 17.91, 17.42, 17.02
+Traceback (most recent call last):
+  File "gcn_model_pytorch.py", line 2, in <module>
+    from deepchem.models import GCNModel
+ImportError: cannot import name 'GCNModel' from 'deepchem.models' (/vol/bitbucket/vwc21/chem_env/lib/python3.8/site-packages/deepchem/models/__init__.py)
